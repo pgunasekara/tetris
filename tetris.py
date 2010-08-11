@@ -251,6 +251,8 @@ class Game(object):
     factor = 4
     frame_rate = 60.0
     
+    is_paused = False
+    
     def __init__(self, window_ref, board, starting_level=1):
         self.window_ref = window_ref
         self.board = board
@@ -267,6 +269,9 @@ class Game(object):
         self.score = 0
     
     def should_update(self):
+        if self.is_paused:
+            return False
+        
         self.ticks += 1
         if self.ticks >= (self.frame_rate - (self.level * self.factor)):
             self.ticks = 0
@@ -294,6 +299,9 @@ class Game(object):
             self.board.move_down()
             self.update_caption()
     
+    def toggle_pause(self):
+        self.is_paused = not self.is_paused
+    
     def update_caption(self):
         self.window_ref.set_caption('Tetris - %s lines [%s]' % (self.lines, self.score))
 
@@ -314,6 +322,11 @@ def on_draw():
 @window.event
 def on_text_motion(motion):
     game.keyboard_handler(motion)
+
+@window.event
+def on_key_press(key_pressed, mod):
+    if key_pressed == key.P:
+        game.toggle_pause()
 
 def update(dt):
     game.cycle()
