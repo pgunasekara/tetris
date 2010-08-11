@@ -2,11 +2,13 @@ import pyglet
 from pyglet.window import key
 
 import random
+import sys
 
 __module_name__ = 'tetris'
 __module_description__ = 'a clone of tetris written in python'
 __version__ = (0, 1, 0)
 
+# these are the dimensions from the gameboy version
 BOARD_WIDTH = 14
 BOARD_HEIGHT = 20
 
@@ -237,9 +239,18 @@ class Board(object):
 
 class Game(object):
     ticks = 0
-    level = 1
     factor = 2
     frame_rate = 60.0
+    
+    def __init__(self, window_ref, board, starting_level=1):
+        self.window_ref = window_ref
+        self.board = board
+        self.starting_level = starting_level
+        self.reset()
+    
+    def reset(self):
+        self.level = self.starting_level
+        self.score = 0
     
     def should_update(self):
         self.ticks += 1
@@ -247,23 +258,32 @@ class Game(object):
             self.ticks = 0
             return True
         return False
+    
+    def draw_handler(self):
+        self.window_ref.clear()
+        self.board.draw_game_board()
+    
+    def keyboard_handler(self, motion):
+        self.board.move_piece(motion)
+    
+    def cycle(self):
+        if self.should_update():
+            self.board.move_down()
 
 
 board = Board(BOARD_WIDTH, BOARD_HEIGHT, block)
-game = Game()
+game = Game(window, board)
 
 @window.event
 def on_draw():
-    window.clear()
-    board.draw_game_board()
+    game.draw_handler()
 
 @window.event
 def on_text_motion(motion):
-    board.move_piece(motion)
+    game.keyboard_handler(motion)
 
 def update(dt):
-    if game.should_update():
-        board.move_down()
+    game.cycle()
 
 pyglet.clock.schedule_interval(update, 1 / game.frame_rate)
 pyglet.app.run()
