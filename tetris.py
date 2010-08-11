@@ -99,18 +99,21 @@ class Board(object):
         self.reset()
     
     def reset(self):
-        self.pending_shape = Shape()
-        self.add_shape()
-        
         self.board = []
         for row in range(self.height):
             self.board.append([0] * self.width)
+        
+        self.pending_shape = Shape()
+        self.add_shape()
 
     def add_shape(self):
         self.active_shape = self.pending_shape.clone()
-        self.active_shape.x = self.width // 2
+        self.active_shape.x = self.width // 2 - self.active_shape.left_edge
         self.active_shape.y = -1
         self.pending_shape = Shape()
+        
+        if self.is_collision():
+            self.reset()
     
     def rotate_shape(self):
         rotated_shape = self.active_shape.clone()
@@ -261,6 +264,6 @@ def on_text_motion(motion):
 def update(dt):
     if game.should_update():
         board.move_down()
-    
+
 pyglet.clock.schedule_interval(update, 1 / game.frame_rate)
 pyglet.app.run()
