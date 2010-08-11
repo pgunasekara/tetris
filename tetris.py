@@ -88,7 +88,7 @@ class Shape(object):
                     return y
 
 
-class Board(object):
+class Board(pyglet.event.EventDispatcher):
     active_shape = None
     pending_shape = None
     board = None
@@ -206,8 +206,12 @@ class Board(object):
                 if self.active_shape.shape[y][x] == BLOCK_FULL:
                     self.board[dy][dx] = BLOCK_FULL
         
+        lines_found = 0
         while self.test_for_line():
-            pass
+            lines_found += 1
+        
+        if lines_found:
+            self.dispatch_event('on_lines', lines_found)
 
     def move_piece(self, motion_state):
         if motion_state == key.MOTION_LEFT:
@@ -237,6 +241,9 @@ class Board(object):
         self.block.blit(x * BLOCK_WIDTH, self.calculated_height - y * BLOCK_HEIGHT)
 
 
+Board.register_event_type('on_lines')
+
+
 class Game(object):
     ticks = 0
     factor = 2
@@ -246,7 +253,11 @@ class Game(object):
         self.window_ref = window_ref
         self.board = board
         self.starting_level = starting_level
+        self.register_callbacks()
         self.reset()
+    
+    def register_callbacks(self):
+        self.board.push_handlers(self)
     
     def reset(self):
         self.level = self.starting_level
@@ -265,6 +276,9 @@ class Game(object):
     
     def keyboard_handler(self, motion):
         self.board.move_piece(motion)
+    
+    def on_lines(self, num_lines):
+        pass
     
     def cycle(self):
         if self.should_update():
