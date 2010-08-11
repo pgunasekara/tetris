@@ -248,13 +248,13 @@ Board.register_event_type('on_game_over')
 
 class Game(object):
     ticks = 0
-    factor = 2
+    factor = 4
     frame_rate = 60.0
     
     def __init__(self, window_ref, board, starting_level=1):
         self.window_ref = window_ref
         self.board = board
-        self.starting_level = starting_level
+        self.starting_level = int(starting_level)
         self.register_callbacks()
         self.reset()
     
@@ -299,7 +299,13 @@ class Game(object):
 
 
 board = Board(BOARD_WIDTH, BOARD_HEIGHT, block)
-game = Game(window, board)
+
+if len(sys.argv) > 1:
+    starting_level = int(sys.argv[1])
+else:
+    starting_level = 1
+
+game = Game(window, board, starting_level)
 
 @window.event
 def on_draw():
