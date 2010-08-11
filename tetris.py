@@ -116,6 +116,7 @@ class Board(pyglet.event.EventDispatcher):
         
         if self.is_collision():
             self.reset()
+            self.dispatch_event('on_game_over')
     
     def rotate_shape(self):
         rotated_shape = self.active_shape.clone()
@@ -242,6 +243,7 @@ class Board(pyglet.event.EventDispatcher):
 
 
 Board.register_event_type('on_lines')
+Board.register_event_type('on_game_over')
 
 
 class Game(object):
@@ -261,6 +263,7 @@ class Game(object):
     
     def reset(self):
         self.level = self.starting_level
+        self.lines = 0
         self.score = 0
     
     def should_update(self):
@@ -278,11 +281,21 @@ class Game(object):
         self.board.move_piece(motion)
     
     def on_lines(self, num_lines):
-        pass
+        self.score += (num_lines * self.level)
+        self.lines += num_lines
+        if self.lines / 10 > self.level:
+            self.level = self.lines / 10
+    
+    def on_game_over(self):
+        self.reset()
     
     def cycle(self):
         if self.should_update():
             self.board.move_down()
+            self.update_caption()
+    
+    def update_caption(self):
+        self.window_ref.set_caption('Tetris - %s lines [%s]' % (self.lines, self.score))
 
 
 board = Board(BOARD_WIDTH, BOARD_HEIGHT, block)
